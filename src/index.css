@@ -1,0 +1,100 @@
+@import "tailwindcss";
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+@import "@fontsource/sora/500.css";
+@import "@fontsource/sora/600.css";
+@import "@fontsource/sora/700.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --color-surface: #f4f7f5;
+  --color-surface-elevated: #ffffff;
+  --color-ink: #121a16;
+  --color-ink-muted: #5a6b62;
+  --color-line: #d7e0db;
+  --color-accent: #1f7a5c;
+  --color-accent-soft: #d8efe5;
+  --color-warn: #b45309;
+  --color-danger: #b42318;
+}
+
+.dark {
+  --color-surface: #0c1210;
+  --color-surface-elevated: #151c19;
+  --color-ink: #e8f0eb;
+  --color-ink-muted: #92a399;
+  --color-line: #24302a;
+  --color-accent: #3ecf97;
+  --color-accent-soft: #16352a;
+  --color-warn: #f0b429;
+  --color-danger: #f97066;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  overflow-x: hidden;
+}
+
+#root {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in oklab, var(--color-accent) 18%, transparent), transparent 60%),
+    var(--color-surface);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}

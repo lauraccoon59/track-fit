@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="TrackFit">
+  <rect width="512" height="512" rx="96" fill="#0c1210"/>
+  <rect x="56" y="56" width="400" height="400" rx="72" fill="#16352a"/>
+  <path d="M156 286c0-58 36-96 100-96s100 38 100 96c0 18-4 34-12 48h-48c8-12 12-26 12-48 0-34-20-56-52-56s-52 22-52 56c0 22 4 36 12 48h-48c-8-14-12-30-12-48z" fill="#3ecf97"/>
+  <rect x="228" y="210" width="56" height="140" rx="20" fill="#3ecf97"/>
+  <circle cx="256" cy="176" r="28" fill="#e8f0eb"/>
+</svg>
