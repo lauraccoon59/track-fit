@@ -18,6 +18,7 @@ import {
   resetAllData,
 } from '../db'
 import { INITIAL_PROGRAM } from '../data/program'
+import { RehabSettings } from '../rehab'
 import type { ExportPayload, ThemeMode, WorkoutTemplate } from '../types'
 
 export function SettingsPage() {
@@ -62,17 +63,19 @@ export function SettingsPage() {
 
   async function exportJson() {
     await ensureSeeded()
-    const [s, p, sessions] = await Promise.all([
+    const [s, p, sessions, rehabSessions] = await Promise.all([
       getSettings(),
       getProgram(),
       db.sessions.toArray(),
+      db.rehabSessions.toArray(),
     ])
     const payload: ExportPayload = {
-      version: 1,
+      version: 2,
       exportedAt: new Date().toISOString(),
       settings: s,
       program: p,
       sessions,
+      rehabSessions,
     }
     const blob = new Blob([JSON.stringify(payload, null, 2)], {
       type: 'application/json',
@@ -90,7 +93,7 @@ export function SettingsPage() {
     try {
       const text = await file.text()
       const data = JSON.parse(text) as ExportPayload
-      if (!data || data.version !== 1 || !Array.isArray(data.sessions)) {
+      if (!data || (data.version !== 1 && data.version !== 2) || !Array.isArray(data.sessions)) {
         throw new Error('Fichier invalide')
       }
       await db.transaction(
@@ -98,10 +101,12 @@ export function SettingsPage() {
         db.sessions,
         db.settings,
         db.program,
+        db.rehabSessions,
         async () => {
           await db.sessions.clear()
           await db.settings.clear()
           await db.program.clear()
+          await db.rehabSessions.clear()
           if (data.settings) {
             await db.settings.put({ ...data.settings, id: 1 })
           }
@@ -111,6 +116,11 @@ export function SettingsPage() {
           if (data.sessions.length) {
             await db.sessions.bulkAdd(
               data.sessions.map(({ id: _id, ...rest }) => rest),
+            )
+          }
+          if (data.rehabSessions?.length) {
+            await db.rehabSessions.bulkAdd(
+              data.rehabSessions.map(({ id: _id, ...rest }) => rest),
             )
           }
         },
@@ -213,6 +223,8 @@ export function SettingsPage() {
           ))}
         </div>
       </section>
+
+      <RehabSettings />
 
       <section className="rounded-3xl bg-[var(--color-surface-elevated)] p-4">
         <h2 className="font-display text-lg font-semibold">Temps de repos</h2>

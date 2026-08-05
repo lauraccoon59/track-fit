@@ -1,3 +1,5 @@
+import type { RehabSession, RehabSettings } from '../rehab/rehab.types'
+
 export type WorkoutLetter = 'A' | 'B' | 'C'
 export type ThemeMode = 'light' | 'dark' | 'system'
 export type ExerciseKind = 'main' | 'isolation' | 'isometric'
@@ -90,6 +92,8 @@ export interface AppSettings {
   restOverrides: Record<string, number>
   /** Poids du corps en kg, utilisé pour les exercices au PDC */
   bodyWeightKg?: number | null
+  /** Réglages du module rééducation */
+  rehab?: RehabSettings
 }
 
 export interface ProgramState {
@@ -98,9 +102,12 @@ export interface ProgramState {
 }
 
 export interface ExportPayload {
-  version: 1
+  version: 1 | 2
   exportedAt: string
   settings: AppSettings
   program: ProgramState
   sessions: WorkoutSession[]
+  rehabSessions?: RehabSession[]
 }
+
+export type { RehabSession, RehabSettings }

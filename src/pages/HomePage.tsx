@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { ChevronRight, Dumbbell, Play } from 'lucide-react'
+import { ChevronRight, Dumbbell, HeartPulse, Play } from 'lucide-react'
 import { db, getProgram, getSettings, readProgram } from '../db'
+import { PreRehabPrompt } from '../components/PreRehabPrompt'
 import { PreWorkoutCheck } from '../components/PreWorkoutCheck'
+import { startRehabSession } from '../rehab/rehab.service'
 import type { PreCheck, WorkoutLetter } from '../types'
 import {
   createSessionFromTemplate,
@@ -23,6 +25,7 @@ const defaultPreCheck: PreCheck = {
 export function HomePage() {
   const navigate = useNavigate()
   const [pendingLetter, setPendingLetter] = useState<WorkoutLetter | null>(null)
+  const [askRehab, setAskRehab] = useState(false)
   const [preCheck, setPreCheck] = useState<PreCheck>(defaultPreCheck)
 
   const data = useLiveQuery(async () => {
@@ -85,11 +88,13 @@ export function HomePage() {
     return null
   }, [completed, data?.program.workouts])
 
-  async function startWorkout(letter: WorkoutLetter) {
+  async function createWorkoutSession(
+    letter: WorkoutLetter,
+  ): Promise<number | undefined> {
     const program = await getProgram()
     const settings = await getSettings()
     const template = program.workouts.find((w) => w.id === letter)
-    if (!template) return
+    if (!template) return undefined
 
     const existing = await db.sessions
       .where('status')
@@ -104,11 +109,32 @@ export function HomePage() {
       preCheck,
       settings.restOverrides,
     )
-    const id = await db.sessions.add(session)
-    setPendingLetter(null)
-    setPreCheck(defaultPreCheck)
-    void navigate(`/seance/${id}`)
+    return db.sessions.add(session)
   }
+
+  function resetPending() {
+    setPendingLetter(null)
+    setAskRehab(false)
+    setPreCheck(defaultPreCheck)
+  }
+
+  async function startWorkoutOnly(letter: WorkoutLetter) {
+    const id = await createWorkoutSession(letter)
+    resetPending()
+    if (id != null) void navigate(`/seance/${id}`)
+  }
+
+  async function startRehabThenWorkout(letter: WorkoutLetter) {
+    const workoutId = await createWorkoutSession(letter)
+    resetPending()
+    if (workoutId == null) return
+    const rehabId = await startRehabSession({ returnToWorkoutId: workoutId })
+    void navigate(`/reeducation/circuit/${rehabId}`)
+  }
+
+  const pendingLabel =
+    data?.program.workouts.find((w) => w.id === pendingLetter)?.name ??
+    (pendingLetter ? `Séance ${pendingLetter}` : 'la séance')
 
   return (
     <div className="space-y-5 pb-4 pt-2">
@@ -138,6 +164,26 @@ export function HomePage() {
           <ChevronRight className="text-[var(--color-accent)]" />
         </button>
       )}
+
+      <Link
+        to="/reeducation"
+        className="flex w-full items-center justify-between gap-3 rounded-3xl bg-[var(--color-surface-elevated)] p-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-accent-soft)] text-[var(--color-accent)]">
+            <HeartPulse size={22} />
+          </div>
+          <div>
+            <p className="font-display text-lg font-semibold">
+              Circuit Kiné Genou
+            </p>
+            <p className="text-sm text-[var(--color-ink-muted)]">
+              Rééducation · avant ou hors séance
+            </p>
+          </div>
+        </div>
+        <ChevronRight className="text-[var(--color-ink-muted)]" />
+      </Link>
 
       <section className="rounded-3xl bg-[var(--color-surface-elevated)] p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wide text-[var(--color-ink-muted)]">
@@ -255,19 +301,22 @@ export function HomePage() {
         </div>
       </section>
 
-      {pendingLetter && (
+      {pendingLetter && !askRehab && (
         <PreWorkoutCheck
-          workoutLabel={
-            data?.program.workouts.find((w) => w.id === pendingLetter)?.name ??
-            `Séance ${pendingLetter}`
-          }
+          workoutLabel={pendingLabel}
           value={preCheck}
           onChange={setPreCheck}
-          onCancel={() => {
-            setPendingLetter(null)
-            setPreCheck(defaultPreCheck)
-          }}
-          onConfirm={() => void startWorkout(pendingLetter)}
+          onCancel={resetPending}
+          onConfirm={() => setAskRehab(true)}
+        />
+      )}
+
+      {pendingLetter && askRehab && (
+        <PreRehabPrompt
+          workoutLabel={pendingLabel}
+          onCancel={resetPending}
+          onYes={() => void startRehabThenWorkout(pendingLetter)}
+          onNo={() => void startWorkoutOnly(pendingLetter)}
         />
       )}
     </div>

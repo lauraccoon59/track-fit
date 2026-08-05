@@ -13,6 +13,7 @@ import { HomePage } from './pages/HomePage'
 import { ProgressPage } from './pages/ProgressPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { WorkoutPage } from './pages/WorkoutPage'
+import { RehabHistory, RehabHome, RehabWorkout } from './rehab'
 
 const router = createBrowserRouter(
   createRoutesFromElements(
@@ -23,6 +24,9 @@ const router = createBrowserRouter(
       <Route path="historique/:id" element={<SessionDetailPage />} />
       <Route path="progression" element={<ProgressPage />} />
       <Route path="reglages" element={<SettingsPage />} />
+      <Route path="reeducation" element={<RehabHome />} />
+      <Route path="reeducation/historique" element={<RehabHistory />} />
+      <Route path="reeducation/circuit/:id" element={<RehabWorkout />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Route>,
   ),
